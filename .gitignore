@@ -21,3 +21,6 @@ venv/
 #Package-cache-related
 pip-log.txt
 pip-delete-this-directory.txt
+
+#cashe-related
+.cache/
