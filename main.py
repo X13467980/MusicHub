@@ -19,7 +19,6 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_secret=SPOTIPY_CLIENT_SECRET
 ))
 
-# FastAPIアプリ作成
 app = FastAPI()
 
 @app.get("/")
@@ -29,7 +28,6 @@ def read_root():
 @app.get("/track-info")
 def get_track_info(track_name: str = Query(..., description="曲名"),
                    artist_name: str = Query(..., description="アーティスト名")):
-    """曲名とアーティスト名を入力すると、Spotifyから楽曲情報を取得する"""
 
     query = f"track:{track_name} artist:{artist_name}"
     results = sp.search(q=query, type="track", limit=1)
@@ -44,7 +42,7 @@ def get_track_info(track_name: str = Query(..., description="曲名"),
         "artist": track["artists"][0]["name"],
         "album": track["album"]["name"],
         "release_date": track["album"]["release_date"],
-        "preview_url": track["preview_url"],  # 試聴用URL
+        "preview_url": track["preview_url"],  
         "spotify_url": track["external_urls"]["spotify"],
         "album_image": track["album"]["images"][0]["url"] if track["album"]["images"] else None
     }
