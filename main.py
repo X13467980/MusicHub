@@ -3,6 +3,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 # .envファイルを読み込む（環境変数に設定する場合は不要）
 load_dotenv()
@@ -20,6 +21,14 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
 ))
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
