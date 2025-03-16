@@ -32,7 +32,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World!"}
+    return {"Welcome": "This is MusicHub"}
 
 @app.get("/get_album_image")
 def get_album_image(track_name: str = Query(..., description="曲名"),
