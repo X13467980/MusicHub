@@ -25,10 +25,10 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World!"}
 
-@app.get("/get_track_info")
-def get_track_info(track_name: str = Query(..., description="曲名"),
-                   artist_name: str = Query(..., description="アーティスト名")):
-
+@app.get("/get_album_image")
+def get_album_image(track_name: str = Query(..., description="曲名"),
+                    artist_name: str = Query(..., description="アーティスト名")):
+    
     query = f"track:{track_name} artist:{artist_name}"
     results = sp.search(q=query, type="track", limit=1)
 
@@ -36,13 +36,6 @@ def get_track_info(track_name: str = Query(..., description="曲名"),
         return {"error": "楽曲が見つかりません"}
 
     track = results['tracks']['items'][0]
+    album_image = track["album"]["images"][0]["url"] if track["album"]["images"] else None
 
-    return {
-        "track_name": track["name"],
-        "artist": track["artists"][0]["name"],
-        "album": track["album"]["name"],
-        "release_date": track["album"]["release_date"],
-        "preview_url": track["preview_url"],  
-        "spotify_url": track["external_urls"]["spotify"],
-        "album_image": track["album"]["images"][0]["url"] if track["album"]["images"] else None
-    }
+    return {"album_image": album_image}
