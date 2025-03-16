@@ -23,9 +23,9 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello World"}
+    return {"Hello": "World!"}
 
-@app.get("/track-info")
+@app.get("/get_track_info")
 def get_track_info(track_name: str = Query(..., description="曲名"),
                    artist_name: str = Query(..., description="アーティスト名")):
 
