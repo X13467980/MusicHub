@@ -48,3 +48,5 @@ def get_album_image(track_name: str = Query(..., description="曲名"),
     album_image = track["album"]["images"][0]["url"] if track["album"]["images"] else None
 
     return {"album_image": album_image}
+
+@app.get("/get_song_info")
