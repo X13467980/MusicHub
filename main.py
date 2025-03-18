@@ -1,9 +1,4 @@
 from fastapi import FastAPI, Query, HTTPException
-import numpy as np
-from collections import Counter
-import matplotlib.pyplot as plt
-import io
-import base64
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
