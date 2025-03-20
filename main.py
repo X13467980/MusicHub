@@ -48,3 +48,23 @@ def get_album_image(track_name: str = Query(..., description="曲名"),
     album_image = track["album"]["images"][0]["url"] if track["album"]["images"] else None
 
     return {"album_image": album_image}
+
+@app.get("/get_playlist_tracks")
+def get_playlist_tracks(playlist_id: str = Query(..., description="SpotifyのプレイリストID")):
+    try:
+        results = sp.playlist_tracks(playlist_id)
+        tracks = []
+        
+        for item in results['items']:
+            track = item['track']
+            tracks.append({
+                "track_name": track["name"],
+                "artist_name": ", ".join([artist["name"] for artist in track["artists"]]),
+                "album_name": track["album"]["name"],
+                "album_image": track["album"]["images"][0]["url"] if track["album"]["images"] else None,
+                "spotify_url": track["external_urls"]["spotify"]
+            })
+        
+        return {"playlist_tracks": tracks}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"エラーが発生しました: {str(e)}")
