@@ -68,3 +68,7 @@ def get_playlist_tracks(playlist_id: str = Query(..., description="Spotifyのプ
         return {"playlist_tracks": tracks}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"エラーが発生しました: {str(e)}")
+    
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="", port=8000)
