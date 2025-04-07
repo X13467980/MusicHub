@@ -50,6 +50,21 @@ def get_album_image(track_name: str = Query(..., description="曲名"),
 
     return {"album_image": album_image}
 
+@app.get("/extract_playlist_id")
+def extract_playlist_id(playlist_url: str = Query(..., description="SpotifyのプレイリストURL")):
+    try:
+        if "open.spotify.com" in playlist_url:
+            parsed_url = urlparse(playlist_url)
+            path_parts = parsed_url.path.strip("/").split("/")
+            if len(path_parts) == 2 and path_parts[0] == "playlist":
+                return {"playlist_id": path_parts[1]}
+        elif playlist_url.startswith("spotify:playlist:"):
+            return {"playlist_id": playlist_url.split(":")[2]}
+        else:
+            raise ValueError("プレイリストURLの形式が正しくありません")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"ID抽出に失敗しました: {str(e)}")
+    
 @app.get("/get_playlist_tracks")
 def get_playlist_tracks(playlist_id: str = Query(..., description="SpotifyのプレイリストID")):
     try:
@@ -73,18 +88,3 @@ def get_playlist_tracks(playlist_id: str = Query(..., description="Spotifyのプ
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="", port=8000)
-
-@app.get("/extract_playlist_id")
-def extract_playlist_id(playlist_url: str = Query(..., description="SpotifyのプレイリストURL")):
-    try:
-        if "open.spotify.com" in playlist_url:
-            parsed_url = urlparse(playlist_url)
-            path_parts = parsed_url.path.strip("/").split("/")
-            if len(path_parts) == 2 and path_parts[0] == "playlist":
-                return {"playlist_id": path_parts[1]}
-        elif playlist_url.startswith("spotify:playlist:"):
-            return {"playlist_id": playlist_url.split(":")[2]}
-        else:
-            raise ValueError("プレイリストURLの形式が正しくありません")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"ID抽出に失敗しました: {str(e)}")
