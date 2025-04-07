@@ -85,6 +85,42 @@ def get_playlist_tracks(playlist_id: str = Query(..., description="Spotifyのプ
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"エラーが発生しました: {str(e)}")
     
+@app.get("/get_recommendations")
+def get_recommendations(
+    track_id: str = Query(None, description="基準にする曲のID"),
+    artist_id: str = Query(None, description="基準にするアーティストのID"),
+    genre: str = Query(None, description="基準にするジャンル名（例: pop）"),
+    limit: int = Query(10, description="取得する曲数（最大100）")
+):
+    try:
+        seed_tracks = [track_id] if track_id else []
+        seed_artists = [artist_id] if artist_id else []
+        seed_genres = [genre] if genre else []
+
+        if not (seed_tracks or seed_artists or seed_genres):
+            raise HTTPException(status_code=400, detail="track_id、artist_id、genre のうち1つ以上が必要です")
+
+        recommendations = sp.recommendations(
+            seed_tracks=seed_tracks,
+            seed_artists=seed_artists,
+            seed_genres=seed_genres,
+            limit=limit
+        )
+
+        recommended_tracks = []
+        for track in recommendations["tracks"]:
+            recommended_tracks.append({
+                "track_name": track["name"],
+                "artist_name": ", ".join([a["name"] for a in track["artists"]]),
+                "spotify_url": track["external_urls"]["spotify"],
+                "album_image": track["album"]["images"][0]["url"] if track["album"]["images"] else None
+            })
+
+        return {"recommendations": recommended_tracks}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"おすすめ曲の取得に失敗しました: {str(e)}")
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="", port=8000)
