@@ -105,6 +105,24 @@ def get_playlist_tracks(playlist_id: str = Query(..., description="Spotifyのプ
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"エラーが発生しました: {str(e)}")
     
+# アーティスト名からジャンルを取得するエンドポイント
+@app.get("/get_artist_genres")
+def get_artist_genres(artist_name: str = Query(..., description="アーティスト名")):
+    try:
+        results = sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
+        if not results['artists']['items']:
+            raise HTTPException(status_code=404, detail="アーティストが見つかりません")
+        
+        artist = results['artists']['items'][0]
+        genres = artist.get("genres", [])
+
+        return {
+            "artist_name": artist["name"],
+            "genres": genres
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"ジャンル取得エラー: {str(e)}")
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="", port=8000)
