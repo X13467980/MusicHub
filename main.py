@@ -35,6 +35,7 @@ app.add_middleware(
 def read_root():
     return {"Welcome": "This is MusicHub"}
 
+# 曲名とアーティスト名を入れるとジャケット画像を取得できるエンドポイント
 @app.get("/get_album_image")
 def get_album_image(track_name: str = Query(..., description="曲名"),
                     artist_name: str = Query(..., description="アーティスト名")):
@@ -50,6 +51,7 @@ def get_album_image(track_name: str = Query(..., description="曲名"),
 
     return {"album_image": album_image}
 
+# SpotifyのプレイリストURLからIDを抽出するエンドポイント
 @app.get("/extract_playlist_id")
 def extract_playlist_id(playlist_url: str = Query(..., description="SpotifyのプレイリストURL")):
     try:
@@ -64,7 +66,8 @@ def extract_playlist_id(playlist_url: str = Query(..., description="Spotifyの�
             raise ValueError("プレイリストURLの形式が正しくありません")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"ID抽出に失敗しました: {str(e)}")
-    
+
+# SpotifyのプレイリストIDからプレイリスト内の曲情報を取得するエンドポイント  
 @app.get("/get_playlist_tracks")
 def get_playlist_tracks(playlist_id: str = Query(..., description="SpotifyのプレイリストID")):
     try:
@@ -84,42 +87,6 @@ def get_playlist_tracks(playlist_id: str = Query(..., description="Spotifyのプ
         return {"playlist_tracks": tracks}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"エラーが発生しました: {str(e)}")
-    
-@app.get("/get_recommendations")
-def get_recommendations(
-    track_id: str = Query(None, description="基準にする曲のID"),
-    artist_id: str = Query(None, description="基準にするアーティストのID"),
-    genre: str = Query(None, description="基準にするジャンル名（例: pop）"),
-    limit: int = Query(10, description="取得する曲数（最大100）")
-):
-    try:
-        seed_tracks = [track_id] if track_id else []
-        seed_artists = [artist_id] if artist_id else []
-        seed_genres = [genre] if genre else []
-
-        if not (seed_tracks or seed_artists or seed_genres):
-            raise HTTPException(status_code=400, detail="track_id、artist_id、genre のうち1つ以上が必要です")
-
-        recommendations = sp.recommendations(
-            seed_tracks=seed_tracks,
-            seed_artists=seed_artists,
-            seed_genres=seed_genres,
-            limit=limit
-        )
-
-        recommended_tracks = []
-        for track in recommendations["tracks"]:
-            recommended_tracks.append({
-                "track_name": track["name"],
-                "artist_name": ", ".join([a["name"] for a in track["artists"]]),
-                "spotify_url": track["external_urls"]["spotify"],
-                "album_image": track["album"]["images"][0]["url"] if track["album"]["images"] else None
-            })
-
-        return {"recommendations": recommended_tracks}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"おすすめ曲の取得に失敗しました: {str(e)}")
     
 if __name__ == "__main__":
     import uvicorn
