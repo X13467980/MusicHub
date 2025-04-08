@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import urlparse
+from typing import Optional
 
 # .envファイルを読み込む（環境変数に設定する場合は不要）
 load_dotenv()
@@ -87,6 +88,22 @@ def get_playlist_tracks(playlist_id: str = Query(..., description="Spotifyのプ
         return {"playlist_tracks": tracks}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"エラーが発生しました: {str(e)}")
+    
+# Spotifyの曲URLからIDを抽出するエンドポイント
+@app.get("/extract_track_id")
+def extract_track_id(track_url: str = Query(..., description="Spotifyの曲URL")):
+    try:
+        if "open.spotify.com" in track_url:
+            parsed_url = urlparse(track_url)
+            path_parts = parsed_url.path.strip("/").split("/")
+            if len(path_parts) == 2 and path_parts[0] == "track":
+                return {"track_id": path_parts[1]}
+        elif track_url.startswith("spotify:track:"):
+            return {"track_id": track_url.split(":")[2]}
+        else:
+            raise ValueError("曲URLの形式が正しくありません")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"トラックID抽出に失敗しました: {str(e)}")
     
 if __name__ == "__main__":
     import uvicorn
