@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import urlparse
 from typing import Optional
+from collections import Counter
+import time
 
 # .envファイルを読み込む（環境変数に設定する場合は不要）
 load_dotenv()
@@ -122,6 +124,43 @@ def get_artist_genres(artist_name: str = Query(..., description="アーティス
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"ジャンル取得エラー: {str(e)}")
+
+@app.get("/get_playlist_genre_distribution")
+def get_playlist_genre_distribution(playlist_id: str = Query(..., description="SpotifyのプレイリストID")):
+    try:
+        results = sp.playlist_tracks(playlist_id)
+        tracks = results["items"]
+        
+        artist_genre_counter = Counter()
+
+        for item in tracks:
+            track = item.get("track")
+            if not track:
+                continue
+            
+            # 複数アーティスト対応
+            for artist in track.get("artists", []):
+                artist_name = artist["name"]
+                try:
+                    # 検索してジャンル取得
+                    search_result = sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
+                    artist_items = search_result.get("artists", {}).get("items", [])
+                    if artist_items:
+                        genres = artist_items[0].get("genres", [])
+                        artist_genre_counter.update(genres)
+                except Exception as e:
+                    print(f"アーティスト {artist_name} のジャンル取得に失敗: {str(e)}")
+                
+                # API呼び出し間隔を空ける（レートリミット対策）
+                time.sleep(0.1)
+
+        return {
+            "playlist_id": playlist_id,
+            "genre_distribution": dict(artist_genre_counter)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ジャンル分布取得エラー: {str(e)}")
     
 if __name__ == "__main__":
     import uvicorn
